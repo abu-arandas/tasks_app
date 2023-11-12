@@ -1,7 +1,8 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:tasks_app/screens/sign_up.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
+import '/controller/authentication.dart';
+
+import '/screens/sign_up.dart';
 
 class SignIn extends StatefulWidget {
   const SignIn({super.key});
@@ -17,115 +18,130 @@ class _SignInState extends State<SignIn> {
   bool obscureText = true;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: SingleChildScrollView(
-        child: Container(
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height,
-          alignment: Alignment.center,
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 500),
-            margin: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.transparent.withOpacity(0.25),
-              borderRadius: BorderRadius.circular(12.5),
-            ),
-            child: Form(
-              key: formKey,
+  Widget build(BuildContext context) => Scaffold(
+        body: SingleChildScrollView(
+          child: Form(
+            key: formKey,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: MediaQuery.sizeOf(context).height),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  //  Email
-                  TextFormField(
-                    decoration: const InputDecoration(labelText: 'Email'),
-                    controller: emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    validator: (value) {
-                      if (value!.isEmpty) {
-                        return '* required';
-                      }
-                      return null;
-                    },
-                  ),
                   const SizedBox(height: 12),
+
+                  // Image
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Image.asset('assets/sign_in.png'),
+                  ),
+
+                  // Title
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      'Sign In',
+                      style: Theme.of(context).textTheme.headlineLarge!.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+
+                  //  Email
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: TextFormField(
+                      decoration: const InputDecoration(labelText: 'Email'),
+                      controller: emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return '* required';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
 
                   // Password
-                  TextFormField(
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      suffixIcon: IconButton(
-                        onPressed: () => setState(() => obscureText = !obscureText),
-                        icon: Icon(
-                          obscureText ? Icons.remove_red_eye : Icons.lock,
-                          color: Colors.white,
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: TextFormField(
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        suffixIcon: IconButton(
+                          onPressed: () => setState(() => obscureText = !obscureText),
+                          icon: Icon(
+                            obscureText ? Icons.remove_red_eye : Icons.lock,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
+                      obscureText: obscureText,
+                      controller: passwordController,
+                      keyboardType: TextInputType.visiblePassword,
+                      textInputAction: TextInputAction.done,
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return '* required';
+                        }
+                        return null;
+                      },
+                      onFieldSubmitted: (value) => validate(),
                     ),
-                    obscureText: obscureText,
-                    controller: passwordController,
-                    keyboardType: TextInputType.visiblePassword,
-                    textInputAction: TextInputAction.done,
-                    validator: (value) {
-                      if (value!.isEmpty) {
-                        return '* required';
-                      }
-                      return null;
-                    },
-                    onFieldSubmitted: (value) => validate(),
                   ),
-                  const SizedBox(height: 12),
 
                   // Button
-                  ElevatedButton(
-                    onPressed: () => validate(),
-                    child: const Text('Sign In'),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ElevatedButton(
+                      onPressed: () => validate(),
+                      style: ElevatedButton.styleFrom(
+                        fixedSize: const Size(500, 50),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.5)),
+                      ),
+                      child: const Text('Sign In'),
+                    ),
                   ),
-                  const SizedBox(height: 12),
 
                   // Sign Up
-                  RichText(
-                    text: TextSpan(
-                      text: 'Don\'t have an account?\t\t',
-                      style: const TextStyle(fontSize: 16),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        TextSpan(
-                          text: 'Sign Up',
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () => Navigator.push(
-                                context, MaterialPageRoute(builder: (context) => const SignUp())),
-                          style: const TextStyle(
-                            fontSize: 17,
-                            decoration: TextDecoration.underline,
-                            fontWeight: FontWeight.bold,
+                        const Text(
+                          'Don\'t have an account?',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const SignUp()),
                           ),
-                        )
+                          child: const Text(
+                            'Sign Up',
+                            style: TextStyle(
+                              fontSize: 17,
+                              decoration: TextDecoration.underline,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
+                  const SizedBox(height: 12),
                 ],
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
+      );
 
-  validate() async {
+  validate() {
     if (formKey.currentState!.validate()) {
-      try {
-        await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: emailController.text,
-          password: passwordController.text,
-        );
-      } on FirebaseAuthException catch (error) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.message!)));
-      }
+      Authentication.instance.signIn(context: context, email: emailController.text, password: passwordController.text);
     }
   }
 }

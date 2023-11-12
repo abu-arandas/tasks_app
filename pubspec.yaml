@@ -15,18 +15,14 @@ dependencies:
   flutter_app_name: ^0.1.1
   flutter_launcher_icons: ^0.11.0
   cupertino_icons: ^1.0.2
+  get: ^4.6.6
   intl: ^0.18.1
   multi_select_flutter: ^4.1.3
   horizontal_calendar: ^1.1.2
-  firebase_core: ^2.14.0
-  firebase_auth: ^4.6.3
-  cloud_firestore: ^4.8.1
 
-# App Name
 flutter_app_name:
   name: 'Task Management'
 
-# App Icon
 flutter_icons:
   android: 'launcher_icon'
   ios: true
@@ -37,7 +33,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^2.0.0
+  flutter_lints: ^3.0.1
 
 flutter:
   uses-material-design: true

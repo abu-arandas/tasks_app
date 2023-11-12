@@ -1,7 +1,8 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:tasks_app/screens/sign_in.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
+import '/controller/authentication.dart';
+
+import '/screens/sign_in.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -19,30 +20,34 @@ class _SignUpState extends State<SignUp> {
   bool obscureText = true;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: SingleChildScrollView(
-        child: Container(
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height,
-          alignment: Alignment.center,
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 500),
-            margin: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.transparent.withOpacity(0.25),
-              borderRadius: BorderRadius.circular(12.5),
-            ),
-            child: Form(
-              key: formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Name
-                  Row(
+  Widget build(BuildContext context) => Scaffold(
+        body: SingleChildScrollView(
+          child: Form(
+            key: formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 12),
+
+                // Image
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Image.asset('assets/sign_up.png'),
+                ),
+
+                // Title
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'Sign Up',
+                    style: Theme.of(context).textTheme.headlineLarge!.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ),
+
+                // Name
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
@@ -76,10 +81,12 @@ class _SignUpState extends State<SignUp> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                ),
 
-                  //  Email
-                  TextFormField(
+                //  Email
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: TextFormField(
                     decoration: const InputDecoration(labelText: 'Email'),
                     controller: emailController,
                     keyboardType: TextInputType.emailAddress,
@@ -91,10 +98,12 @@ class _SignUpState extends State<SignUp> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 12),
+                ),
 
-                  // Password
-                  TextFormField(
+                // Password
+                Padding(
+                  padding: const EdgeInsets.all(16).copyWith(top: 0),
+                  child: TextFormField(
                     decoration: InputDecoration(
                       labelText: 'Password',
                       suffixIcon: IconButton(
@@ -117,55 +126,64 @@ class _SignUpState extends State<SignUp> {
                     textInputAction: TextInputAction.done,
                     onFieldSubmitted: (value) => validate(),
                   ),
-                  const SizedBox(height: 12),
+                ),
 
-                  // Button
-                  ElevatedButton(
+                // Button
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: ElevatedButton(
                     onPressed: () => validate(),
+                    style: ElevatedButton.styleFrom(
+                      fixedSize: const Size(500, 50),
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.5)),
+                    ),
                     child: const Text('Sign Up'),
                   ),
-                  const SizedBox(height: 12),
+                ),
+                const SizedBox(height: 12),
 
-                  // Sign In
-                  RichText(
-                    text: TextSpan(
-                      text: 'Don\'t have an account?\t\t',
-                      style: const TextStyle(fontSize: 16),
-                      children: [
-                        TextSpan(
-                          text: 'Sign In',
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () => Navigator.push(
-                                context, MaterialPageRoute(builder: (context) => const SignIn())),
-                          style: const TextStyle(
-                            fontSize: 17,
-                            decoration: TextDecoration.underline,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )
-                      ],
+                // Sign In
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Already have an account?',
+                      style: TextStyle(fontSize: 16),
                     ),
-                  ),
-                ],
-              ),
+                    TextButton(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const SignIn()),
+                      ),
+                      child: const Text(
+                        'Sign In',
+                        style: TextStyle(
+                          fontSize: 17,
+                          decoration: TextDecoration.underline,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),
-      ),
-    );
-  }
+      );
 
-  validate() async {
+  validate() {
     if (formKey.currentState!.validate()) {
-      try {
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(
-            email: emailController.text, password: passwordController.text);
-
-        await FirebaseAuth.instance.currentUser!
-            .updateDisplayName('${firstNameController.text} ${lastNameController.text}');
-      } on FirebaseAuthException catch (error) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.message!)));
-      }
+      Authentication.instance.signUp(
+        context: context,
+        user: UserModel(
+          name: '${firstNameController.text} ${firstNameController.text}',
+          email: emailController.text,
+          password: passwordController.text,
+        ),
+      );
     }
   }
 }
