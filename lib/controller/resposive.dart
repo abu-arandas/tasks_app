@@ -26,42 +26,24 @@ EnumValues<Col> cols = EnumValues({
   12: Col.col12,
 });
 
-class Div extends StatelessWidget {
-  final Col? lg, md, sm;
-  final EdgeInsetsGeometry? padding;
-  final Decoration? decoration;
-  final Widget child;
-  const Div({super.key, this.lg, this.md, this.sm, this.padding, this.decoration, required this.child});
-
-  double width(BoxConstraints constraints) {
-    if (constraints.maxWidth > 997) {
-      if (lg != null) {
-        return constraints.maxWidth * (cols.reverse[lg]! / 12);
-      } else {
-        return constraints.maxWidth;
-      }
-    } else if (constraints.maxWidth > 767 && constraints.maxWidth < 997) {
-      if (md != null) {
-        return constraints.maxWidth * (cols.reverse[md]! / 12);
-      } else {
-        return constraints.maxWidth;
-      }
+double width(Col? lg, Col? md, Col? sm, BuildContext context) {
+  if (MediaQuery.sizeOf(context).width > 997) {
+    if (lg != null) {
+      return MediaQuery.sizeOf(context).width * (cols.reverse[lg]! / 12);
     } else {
-      if (sm != null) {
-        return constraints.maxWidth * (cols.reverse[sm]! / 12);
-      } else {
-        return constraints.maxWidth;
-      }
+      return MediaQuery.sizeOf(context).width;
+    }
+  } else if (MediaQuery.sizeOf(context).width > 767 && MediaQuery.sizeOf(context).width < 997) {
+    if (md != null) {
+      return MediaQuery.sizeOf(context).width * (cols.reverse[md]! / 12);
+    } else {
+      return MediaQuery.sizeOf(context).width;
+    }
+  } else {
+    if (sm != null) {
+      return MediaQuery.sizeOf(context).width * (cols.reverse[sm]! / 12);
+    } else {
+      return MediaQuery.sizeOf(context).width;
     }
   }
-
-  @override
-  Widget build(BuildContext context) => LayoutBuilder(
-        builder: (context, constraints) => Container(
-          width: width(constraints),
-          padding: padding,
-          decoration: decoration,
-          child: child,
-        ),
-      );
 }

@@ -1,16 +1,22 @@
-Task Management
+<h1 align="center">Task Management</h1>
 
-# Packages
-    1. get
-    2. intl
-    3. multi_select_flutter
-    4. horizontal_calendar
+<h3>About</h3>
+<p>is a task managing application to help its users to stay organized for their day to day activities.</p> 
+<p>can be used by android and ios</p>
 
-# Authentication Pages
-<img src="screenshots/sign-in.png" width="22.5%" style="padding-right:5%"/>    <img src="screenshots/sign-up.png"  width="22.5%" style="padding-right:5%"/>
+<h3>Packages</h3>
+- flutter_app_name
+- flutter_launcher_icons
+- sqflite
+- get
+- intl
+- horizontal_calendar
 
-# Home Pages
-<img src="screenshots/home-1.png" width="22.5%" style="padding-right:5%"/>    <img src="screenshots/home-2.png"  width="22.5%" style="padding-right:5%"/>
-
-# Tasks Pages
-<img src="screenshots/tasks-1.png" width="22.5%" style="padding-right:5%"/>    <img src="screenshots/tasks-2.png"  width="22.5%" style="padding-right:5%"/>
+<center>
+| Mobile  | Tablet |
+| ------------- | ------------- |
+| ![Sign In](screenshots/signin-mobile.png)  | ![Sign In](screenshots/signin-tablet.png)  |
+| ![Home](screenshots/home-mobile.png)  | ![Home](screenshots/home-tablet.png)  |
+| ![Task Information](screenshots/task-mobile.png)  | ![Task Information](screenshots/task-tablet.png)  |
+| ![Add Task](screenshots/add-mobile.png)  | ![Add Task](screenshots/add-tablet.png)  |
+</center>

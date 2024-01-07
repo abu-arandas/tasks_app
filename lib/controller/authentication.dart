@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'sql.dart';
+
 import '/screens/sign_in.dart';
 import '/screens/sign_up.dart';
 import '/screens/home_page.dart';
@@ -8,89 +10,113 @@ import '/screens/home_page.dart';
 class Authentication extends GetxController {
   static Authentication instance = Get.find();
 
-  UserModel? currentUser;
+  UserModel? currentUser = UserModel(
+    id: 0,
+    email: 'e00arandas@gmail.com',
+    password: '123456',
+  );
 
-  List<UserModel> users = [
-    UserModel(name: 'Ehab Arandas', email: 'e00arandas@gmail.com', password: '123456'),
-    UserModel(name: 'Ehab Arandas', email: 'e.aeandas@gmail.com', password: '123456'),
-  ];
+  Future<List<Map<String, dynamic>>> users() async => await SQL.queryData('users');
 
-  void signIn({required BuildContext context, required String email, required String password}) {
-    try {
-      if (users.any((element) => element.email == email)) {
-        if (users.singleWhere((element) => element.email == email).password == password) {
-          currentUser = users.singleWhere((element) => element.email == email);
-          update();
+  void signIn({required BuildContext context, required String email, required String password}) async => await users().then((value) {
+        try {
+          if (value.any((element) => element['email'] == email)) {
+            if (value.singleWhere((element) => element['email'] == email)['password'] == password) {
+              currentUser = UserModel.fromJson(
+                value.singleWhere((element) => element['email'] == email),
+              );
+              update();
 
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  backgroundColor: Colors.green,
+                  duration: Duration(seconds: 5),
+                  content: Text('welcome back'),
+                ),
+              );
+
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const HomePage()),
+                (route) => false,
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(duration: Duration(seconds: 5), content: Text('wrong password')),
+              );
+            }
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 5),
+                content: const Text('email not registered'),
+                action: SnackBarAction(
+                  label: 'Sign Up',
+                  onPressed: () => Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SignUp()),
+                    (route) => false,
+                  ),
+                ),
+              ),
+            );
+          }
+        } catch (error) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 5),
-              content: Text('welcome back'),
+            SnackBar(
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 5),
+              content: Text(error.toString()),
             ),
-          );
-
-          Navigator.push(context, MaterialPageRoute(builder: (context) => const HomePage()));
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(duration: Duration(seconds: 5), content: Text('wrong password')),
           );
         }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
-            content: const Text('email not registered'),
-            action: SnackBarAction(
-              label: 'Sign Up',
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SignUp())),
+      });
+
+  void signUp({required BuildContext context, required UserModel user}) async => await users().then((value) {
+        try {
+          if (!value.any((element) => element['email'] == user.email)) {
+            SQL.insertData('users', user.toJson());
+
+            currentUser = user;
+            update();
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 5),
+                content: Text('welcome'),
+              ),
+            );
+
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const HomePage()));
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 5),
+                content: const Text('email already exists'),
+                action: SnackBarAction(
+                  label: 'Sign In',
+                  onPressed: () => Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SignIn()),
+                    (route) => false,
+                  ),
+                ),
+              ),
+            );
+          }
+        } catch (error) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 5),
+              content: Text(error.toString()),
             ),
-          ),
-        );
-      }
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(backgroundColor: Colors.red, duration: const Duration(seconds: 5), content: Text(error.toString())),
-      );
-    }
-  }
-
-  void signUp({required BuildContext context, required UserModel user}) {
-    try {
-      if (!users.any((element) => element.email == user.email)) {
-        users.add(user);
-        currentUser = user;
-        update();
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 5),
-            content: Text('welcome'),
-          ),
-        );
-
-        Navigator.push(context, MaterialPageRoute(builder: (context) => const HomePage()));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
-            content: const Text('email already exists'),
-            action: SnackBarAction(
-              label: 'Sign In',
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SignIn())),
-            ),
-          ),
-        );
-      }
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(backgroundColor: Colors.red, duration: const Duration(seconds: 5), content: Text(error.toString())),
-      );
-    }
-  }
+          );
+        }
+      });
 
   void signOut(context) {
     try {
@@ -101,17 +127,38 @@ class Authentication extends GetxController {
         const SnackBar(duration: Duration(seconds: 5), content: Text('good bye')),
       );
 
-      Navigator.push(context, MaterialPageRoute(builder: (context) => const SignIn()));
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const SignIn()),
+        (route) => false,
+      );
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(backgroundColor: Colors.red, duration: const Duration(seconds: 5), content: Text(error.toString())),
+        SnackBar(
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+          content: Text(error.toString()),
+        ),
       );
     }
   }
 }
 
 class UserModel {
-  String name, email, password;
+  int id;
+  String email, password;
 
-  UserModel({required this.name, required this.email, required this.password});
+  UserModel({
+    required this.id,
+    required this.email,
+    required this.password,
+  });
+
+  factory UserModel.fromJson(Map<String, dynamic> data) => UserModel(
+        id: data['id'],
+        email: data['email'],
+        password: data['password'],
+      );
+
+  Map<String, dynamic> toJson() => {'email': email, 'password': password};
 }

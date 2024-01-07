@@ -13,8 +13,6 @@ class SignUp extends StatefulWidget {
 
 class _SignUpState extends State<SignUp> {
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  TextEditingController firstNameController = TextEditingController();
-  TextEditingController lastNameController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   bool obscureText = true;
@@ -44,45 +42,6 @@ class _SignUpState extends State<SignUp> {
                   ),
                 ),
 
-                // Name
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          decoration: const InputDecoration(labelText: 'First Name'),
-                          controller: firstNameController,
-                          keyboardType: TextInputType.name,
-                          textInputAction: TextInputAction.next,
-                          validator: (value) {
-                            if (value!.isEmpty) {
-                              return '* required';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: TextFormField(
-                          decoration: const InputDecoration(labelText: 'Last Name'),
-                          controller: lastNameController,
-                          keyboardType: TextInputType.name,
-                          textInputAction: TextInputAction.next,
-                          validator: (value) {
-                            if (value!.isEmpty) {
-                              return '* required';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
                 //  Email
                 Padding(
                   padding: const EdgeInsets.all(16),
@@ -108,10 +67,7 @@ class _SignUpState extends State<SignUp> {
                       labelText: 'Password',
                       suffixIcon: IconButton(
                         onPressed: () => setState(() => obscureText = !obscureText),
-                        icon: Icon(
-                          obscureText ? Icons.remove_red_eye : Icons.lock,
-                          color: Colors.white,
-                        ),
+                        icon: Icon(obscureText ? Icons.remove_red_eye : Icons.lock),
                       ),
                     ),
                     obscureText: obscureText,
@@ -179,7 +135,7 @@ class _SignUpState extends State<SignUp> {
       Authentication.instance.signUp(
         context: context,
         user: UserModel(
-          name: '${firstNameController.text} ${firstNameController.text}',
+          id: 0,
           email: emailController.text,
           password: passwordController.text,
         ),

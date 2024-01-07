@@ -69,10 +69,7 @@ class _SignInState extends State<SignIn> {
                         labelText: 'Password',
                         suffixIcon: IconButton(
                           onPressed: () => setState(() => obscureText = !obscureText),
-                          icon: Icon(
-                            obscureText ? Icons.remove_red_eye : Icons.lock,
-                            color: Colors.white,
-                          ),
+                          icon: Icon(obscureText ? Icons.remove_red_eye : Icons.lock),
                         ),
                       ),
                       obscureText: obscureText,
