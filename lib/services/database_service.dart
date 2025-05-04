@@ -3,10 +3,14 @@ import 'package:path/path.dart';
 import '../models/task.dart';
 import '../models/tag.dart';
 import '../models/reminder.dart';
+import '../utils/error_handler.dart';
+import '../utils/database_optimizer.dart';
 
 class DatabaseService {
   static final DatabaseService _instance = DatabaseService._internal();
   static Database? _database;
+  final ErrorHandler _errorHandler = ErrorHandler();
+  final DatabaseOptimizer _databaseOptimizer = DatabaseOptimizer();
 
   // Singleton pattern
   factory DatabaseService() => _instance;
@@ -125,14 +129,25 @@ class DatabaseService {
 
   Future<List<Task>> getTasks() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('tasks');
-
-    return List.generate(maps.length, (i) {
-      Task task = Task.fromJson(maps[i]);
-      // Load tags for each task
-      _loadTaskTags(task);
-      return task;
-    });
+    try {
+      return await _databaseOptimizer.executeWithPerformanceTracking<List<Task>>(
+        'getTasks',
+        () async {
+          final List<Map<String, dynamic>> maps = await db.query('tasks');
+          final tasks = List.generate(maps.length, (i) {
+            Task task = Task.fromJson(maps[i]);
+            // Load tags for each task
+            _loadTaskTags(task);
+            return task;
+          });
+          return tasks;
+        },
+      );
+    } catch (e, stackTrace) {
+      _errorHandler.handleDatabaseError(e, customMessage: 'Failed to fetch tasks');
+      _errorHandler.log('Error in getTasks', level: ErrorHandler.error, errors: e, stackTrace: stackTrace);
+      return [];
+    }
   }
 
   Future<void> _loadTaskTags(Task task) async {
@@ -279,5 +294,14 @@ class DatabaseService {
       where: 'id = ?',
       whereArgs: [id],
     );
+  }
+
+  Future<void> clearAllTasks() async {
+    final db = await database;
+
+    await db.delete('tasks');
+    await db.delete('reminders');
+    await db.delete('task_tags');
+    await db.delete('subtasks');
   }
 }

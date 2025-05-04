@@ -2,12 +2,14 @@ import 'package:get/get.dart';
 import 'package:uuid/uuid.dart';
 import '../models/tag.dart';
 import '../services/database_service.dart';
+import '../utils/error_handler.dart';
 
 class TagController extends GetxController {
   final DatabaseService _databaseService = DatabaseService();
   final RxList<Tag> tags = <Tag>[].obs;
   final RxBool isLoading = false.obs;
   final Uuid _uuid = const Uuid();
+  final ErrorHandler _errorHandler = ErrorHandler();
 
   @override
   void onInit() {
@@ -20,8 +22,10 @@ class TagController extends GetxController {
     isLoading.value = true;
     try {
       tags.value = await _databaseService.getTags();
-    } catch (e) {
-      print('Error fetching tags: $e');
+      _errorHandler.log('Successfully fetched ${tags.length} tags', level: ErrorHandler.info);
+    } catch (e, stackTrace) {
+      _errorHandler.handleDatabaseError(e, customMessage: 'Failed to load tags');
+      _errorHandler.log('Error fetching tags', level: ErrorHandler.error, errors: e, stackTrace: stackTrace);
     } finally {
       isLoading.value = false;
     }
@@ -29,6 +33,12 @@ class TagController extends GetxController {
 
   // Add a new tag
   Future<void> addTag(String name, String color) async {
+    if (name.trim().isEmpty) {
+      _errorHandler.handleValidationError('Tag Name', 'Tag name cannot be empty');
+      return;
+    }
+
+    isLoading.value = true;
     final tag = Tag(
       id: _uuid.v4(),
       name: name,
@@ -40,13 +50,23 @@ class TagController extends GetxController {
       await _databaseService.insertTag(tag);
       await _databaseService.logChange('tag', tag.id, 'create', tag.toJson().toString());
       tags.add(tag);
-    } catch (e) {
-      print('Error adding tag: $e');
+      _errorHandler.showSuccessSnackbar('Success', 'Tag added successfully');
+    } catch (e, stackTrace) {
+      _errorHandler.handleDatabaseError(e, customMessage: 'Failed to add tag');
+      _errorHandler.log('Error adding tag', level: ErrorHandler.error, errors: e, stackTrace: stackTrace);
+    } finally {
+      isLoading.value = false;
     }
   }
 
   // Update an existing tag
   Future<void> updateTag(Tag tag) async {
+    if (tag.name.trim().isEmpty) {
+      _errorHandler.handleValidationError('Tag Name', 'Tag name cannot be empty');
+      return;
+    }
+
+    isLoading.value = true;
     try {
       await _databaseService.updateTag(tag);
       await _databaseService.logChange('tag', tag.id, 'update', tag.toJson().toString());
@@ -55,19 +75,28 @@ class TagController extends GetxController {
       if (index != -1) {
         tags[index] = tag;
       }
-    } catch (e) {
-      print('Error updating tag: $e');
+      _errorHandler.showSuccessSnackbar('Success', 'Tag updated successfully');
+    } catch (e, stackTrace) {
+      _errorHandler.handleDatabaseError(e, customMessage: 'Failed to update tag');
+      _errorHandler.log('Error updating tag', level: ErrorHandler.error, errors: e, stackTrace: stackTrace);
+    } finally {
+      isLoading.value = false;
     }
   }
 
   // Delete a tag
   Future<void> deleteTag(String id) async {
+    isLoading.value = true;
     try {
       await _databaseService.deleteTag(id);
       await _databaseService.logChange('tag', id, 'delete', '{"id": "$id"}');
       tags.removeWhere((tag) => tag.id == id);
-    } catch (e) {
-      print('Error deleting tag: $e');
+      _errorHandler.showSuccessSnackbar('Success', 'Tag deleted successfully');
+    } catch (e, stackTrace) {
+      _errorHandler.handleDatabaseError(e, customMessage: 'Failed to delete tag');
+      _errorHandler.log('Error deleting tag', level: ErrorHandler.error, errors: e, stackTrace: stackTrace);
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -103,5 +132,10 @@ class TagController extends GetxController {
       {'name': 'Grey', 'value': '#9E9E9E'},
       {'name': 'Blue Grey', 'value': '#607D8B'},
     ];
+  }
+
+  restoreTags(List<Tag> tags) {
+    this.tags.value = tags;
+    update();
   }
 }

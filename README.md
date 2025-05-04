@@ -64,13 +64,12 @@ This MVC structure keeps UI, data, and logic decoupled for easy maintenance and 
 | flutter\_slidable              | Swipeable task list items        |
 | flutter\_staggered\_grid\_view | Kanban-style board layout        |
 | pull\_to\_refresh              | Pull-to-refresh functionality    |
-| system\_notifications          | Scheduling local notifications   |
 
 ⚙️ **Getting Started**
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/offline_tasks_app.git
+git clone https://github.com/abu-arandas/tasks_app.git
 cd offline_tasks_app
 
 # Install dependencies
@@ -78,9 +77,6 @@ flutter pub get
 
 # Run the app
 flutter run
-
-# Run tests
-flutter test
 ```
 
 🗂 **Project Structure**

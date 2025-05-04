@@ -1,13 +1,58 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:uuid/uuid.dart';
 import '../models/task.dart';
 import '../services/database_service.dart';
+import '../utils/error_handler.dart';
+import '../views/screens/task_detail_screen.dart';
+import '../views/widgets/add_task_dialog.dart';
 
 class TaskController extends GetxController {
   final DatabaseService _databaseService = DatabaseService();
   final RxList<Task> tasks = <Task>[].obs;
+  final RxList<Task> filteredTasks = <Task>[].obs;
   final RxBool isLoading = false.obs;
+  final RxBool isFiltered = false.obs;
+  final RxString searchQuery = ''.obs;
   final Uuid _uuid = const Uuid();
+  final ErrorHandler _errorHandler = ErrorHandler();
+
+  // Method to show add task dialog
+  void showAddTaskDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => const AddTaskDialog(),
+    );
+  }
+
+  // Method to navigate to task detail
+  void navigateToTaskDetail(Task task) {
+    Get.to(() => TaskDetailScreen(task: task));
+  }
+
+  // Restore tasks from backup
+  Future<void> restoreTasksFromBackup(List<Task> backupTasks) async {
+    isLoading.value = true;
+    try {
+      // Clear existing tasks
+      await _databaseService.clearAllTasks();
+
+      // Insert all tasks from backup
+      for (final task in backupTasks) {
+        await _databaseService.insertTask(task);
+      }
+
+      // Refresh tasks list
+      await fetchTasks();
+      _errorHandler.log('Restored ${backupTasks.length} tasks from backup', level: ErrorHandler.info);
+    } catch (e, stackTrace) {
+      _errorHandler.handleDatabaseError(e, customMessage: 'Failed to restore tasks from backup');
+      _errorHandler.log('Error restoring tasks from backup',
+          level: ErrorHandler.error, errors: e, stackTrace: stackTrace);
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
   @override
   void onInit() {
@@ -20,10 +65,87 @@ class TaskController extends GetxController {
     isLoading.value = true;
     try {
       tasks.value = await _databaseService.getTasks();
-    } catch (e) {
-      print('Error fetching tasks: $e');
+      _applyCurrentFilters();
+      _errorHandler.log('Successfully fetched ${tasks.length} tasks', level: ErrorHandler.info);
+    } catch (e, stackTrace) {
+      _errorHandler.handleDatabaseError(e, customMessage: 'Failed to load tasks');
+      _errorHandler.log('Error fetching tasks', level: ErrorHandler.error, errors: e, stackTrace: stackTrace);
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  // Apply filters to tasks
+  void applyFilters({
+    bool showCompleted = true,
+    bool showIncomplete = true,
+    String? priority,
+    DateTime? dueDate,
+  }) {
+    isFiltered.value = true;
+
+    filteredTasks.value = tasks.where((task) {
+      // Filter by completion status
+      if (!(showCompleted && task.isCompleted) && !(showIncomplete && !task.isCompleted)) {
+        return false;
+      }
+
+      // Filter by priority
+      if (priority != null && task.priority != priority) {
+        return false;
+      }
+
+      // Filter by due date
+      if (dueDate != null && task.dueDate != null) {
+        final taskDate = DateTime(task.dueDate!.year, task.dueDate!.month, task.dueDate!.day);
+        final filterDate = DateTime(dueDate.year, dueDate.month, dueDate.day);
+        if (taskDate != filterDate) {
+          return false;
+        }
+      }
+
+      // Apply search query if exists
+      if (searchQuery.value.isNotEmpty) {
+        final query = searchQuery.value.toLowerCase();
+        return task.title.toLowerCase().contains(query) || (task.description?.toLowerCase().contains(query) ?? false);
+      }
+
+      return true;
+    }).toList();
+
+    _errorHandler.log(
+        'Applied filters: showCompleted=$showCompleted, showIncomplete=$showIncomplete, priority=$priority, dueDate=$dueDate',
+        level: ErrorHandler.info);
+  }
+
+  // Reset all filters
+  void resetFilters() {
+    isFiltered.value = false;
+    searchQuery.value = '';
+    filteredTasks.value = tasks;
+    _errorHandler.log('Filters reset', level: ErrorHandler.info);
+  }
+
+  // Search tasks by query
+  void searchTasks(String query) {
+    searchQuery.value = query;
+    _applyCurrentFilters();
+  }
+
+  // Apply current filters (internal method)
+  void _applyCurrentFilters() {
+    if (isFiltered.value) {
+      // Re-apply existing filters
+      applyFilters();
+    } else if (searchQuery.value.isNotEmpty) {
+      // Only apply search
+      filteredTasks.value = tasks.where((task) {
+        final query = searchQuery.value.toLowerCase();
+        return task.title.toLowerCase().contains(query) || (task.description?.toLowerCase().contains(query) ?? false);
+      }).toList();
+    } else {
+      // No filters or search
+      filteredTasks.value = tasks;
     }
   }
 
@@ -43,11 +165,17 @@ class TaskController extends GetxController {
     );
 
     try {
+      isLoading.value = true;
       await _databaseService.insertTask(task);
       await _databaseService.logChange('task', task.id, 'create', task.toJson().toString());
       tasks.add(task);
-    } catch (e) {
-      print('Error adding task: $e');
+      _applyCurrentFilters();
+      _errorHandler.showSuccessSnackbar('Success', 'Task added successfully');
+    } catch (e, stackTrace) {
+      _errorHandler.handleDatabaseError(e, customMessage: 'Failed to add task');
+      _errorHandler.log('Error adding task', level: ErrorHandler.error, errors: e, stackTrace: stackTrace);
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -56,15 +184,22 @@ class TaskController extends GetxController {
     final updatedTask = task.copyWith(updatedAt: DateTime.now());
 
     try {
+      isLoading.value = true;
       await _databaseService.updateTask(updatedTask);
       await _databaseService.logChange('task', task.id, 'update', updatedTask.toJson().toString());
 
       final index = tasks.indexWhere((t) => t.id == task.id);
       if (index != -1) {
         tasks[index] = updatedTask;
+        _applyCurrentFilters();
+        _applyCurrentFilters();
       }
-    } catch (e) {
-      print('Error updating task: $e');
+      _errorHandler.showSuccessSnackbar('Success', 'Task updated successfully');
+    } catch (e, stackTrace) {
+      _errorHandler.handleDatabaseError(e, customMessage: 'Failed to update task');
+      _errorHandler.log('Error updating task', level: ErrorHandler.error, errors: e, stackTrace: stackTrace);
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -80,22 +215,35 @@ class TaskController extends GetxController {
     );
 
     try {
+      isLoading.value = true;
       await _databaseService.updateTask(updatedTask);
       await _databaseService.logChange('task', task.id, 'update', updatedTask.toJson().toString());
       tasks[index] = updatedTask;
-    } catch (e) {
-      print('Error toggling task completion: $e');
+      _applyCurrentFilters();
+      _errorHandler.showSuccessSnackbar(
+          'Success', updatedTask.isCompleted ? 'Task marked as completed' : 'Task marked as incomplete');
+    } catch (e, stackTrace) {
+      _errorHandler.handleDatabaseError(e, customMessage: 'Failed to update task status');
+      _errorHandler.log('Error toggling task completion', level: ErrorHandler.error, errors: e, stackTrace: stackTrace);
+    } finally {
+      isLoading.value = false;
     }
   }
 
   // Delete a task
   Future<void> deleteTask(String id) async {
     try {
+      isLoading.value = true;
       await _databaseService.deleteTask(id);
       await _databaseService.logChange('task', id, 'delete', '{"id": "$id"}');
       tasks.removeWhere((task) => task.id == id);
-    } catch (e) {
-      print('Error deleting task: $e');
+      _applyCurrentFilters();
+      _errorHandler.showSuccessSnackbar('Success', 'Task deleted successfully');
+    } catch (e, stackTrace) {
+      _errorHandler.handleDatabaseError(e, customMessage: 'Failed to delete task');
+      _errorHandler.log('Error deleting task', level: ErrorHandler.error, errors: e, stackTrace: stackTrace);
+    } finally {
+      isLoading.value = false;
     }
   }
 

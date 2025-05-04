@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:get/get.dart';
+import '../utils/error_handler.dart';
 import 'database_service.dart';
 
 class ConnectivityService extends GetxController {
@@ -9,6 +10,7 @@ class ConnectivityService extends GetxController {
   final RxBool isOnline = false.obs;
   late StreamSubscription<ConnectivityResult> _connectivitySubscription;
 
+  final ErrorHandler _errorHandler = Get.find<ErrorHandler>();
   @override
   void onInit() {
     super.onInit();
@@ -29,7 +31,7 @@ class ConnectivityService extends GetxController {
       result = await _connectivity.checkConnectivity();
       _updateConnectionStatus(result);
     } catch (e) {
-      print('Connectivity check failed: $e');
+      _errorHandler.showErrorSnackbar('Connectivity failed', 'Connectivity check failed: $e');
       isOnline.value = false;
     }
   }
@@ -71,9 +73,9 @@ class ConnectivityService extends GetxController {
         // }
       }
 
-      print('Synced ${unsynced.length} changes');
+      _errorHandler.showSuccessSnackbar('Synced', 'Synced ${unsynced.length} changes');
     } catch (e) {
-      print('Sync failed: $e');
+      _errorHandler.showErrorSnackbar('Sync failed', e.toString());
     }
   }
 

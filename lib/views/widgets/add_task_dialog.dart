@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/task_controller.dart';
+import '../../utils/error_handler.dart';
 
 class AddTaskDialog extends StatefulWidget {
   const AddTaskDialog({super.key});
@@ -15,6 +16,7 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
   DateTime? _dueDate;
   String _priority = 'medium';
   final TaskController _taskController = Get.find<TaskController>();
+  final ErrorHandler _errorHandler = ErrorHandler();
 
   @override
   void dispose() {
@@ -140,17 +142,41 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
   }
 
   void _addTask() {
-    if (_titleController.text.trim().isEmpty) {
-      // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Task title cannot be empty')),
-      );
+    // Validate title
+    final title = _titleController.text.trim();
+    if (title.isEmpty) {
+      _errorHandler.handleValidationError('Title', 'Task title cannot be empty');
       return;
     }
 
+    // Validate title length
+    if (title.length > 100) {
+      _errorHandler.handleValidationError('Title', 'Task title cannot exceed 100 characters');
+      return;
+    }
+
+    // Validate description length if provided
+    final description = _descriptionController.text.trim();
+    if (description.isNotEmpty && description.length > 500) {
+      _errorHandler.handleValidationError('Description', 'Task description cannot exceed 500 characters');
+      return;
+    }
+
+    // Validate due date is not in the past
+    if (_dueDate != null) {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final dueDate = DateTime(_dueDate!.year, _dueDate!.month, _dueDate!.day);
+
+      if (dueDate.isBefore(today)) {
+        _errorHandler.handleValidationError('Due Date', 'Due date cannot be in the past');
+        return;
+      }
+    }
+
     _taskController.addTask(
-      _titleController.text.trim(),
-      description: _descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim(),
+      title,
+      description: description.isEmpty ? null : description,
       dueDate: _dueDate,
       priority: _priority,
     );
