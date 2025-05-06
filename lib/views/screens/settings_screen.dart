@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../services/backup_service.dart';
 import 'theme_settings_screen.dart';
+import 'tag_management_screen.dart';
+import 'reminder_management_screen.dart';
+import 'plugin_settings_screen.dart';
+import 'language_settings_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   final BackupService _backupService = Get.find<BackupService>();
@@ -29,6 +33,41 @@ class SettingsScreen extends StatelessWidget {
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   Get.to(() => ThemeSettingsScreen());
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.language),
+                title: Text('language'.tr),
+                subtitle: Text('change_language'.tr),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Get.to(() => const LanguageSettingsScreen());
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Organization
+          _buildSettingsCard(
+            title: 'Organization',
+            icon: Icons.folder,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.label),
+                title: const Text('Manage Tags'),
+                subtitle: const Text('Create and edit task tags'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Get.to(() => const TagManagementScreen());
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.notifications),
+                title: const Text('Manage Reminders'),
+                subtitle: const Text('View and edit task reminders'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Get.to(() => const ReminderManagementScreen());
                 },
               ),
             ],
@@ -61,6 +100,24 @@ class SettingsScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
+          // Plugins
+          _buildSettingsCard(
+            title: 'plugins'.tr,
+            icon: Icons.extension,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.extension),
+                title: Text('manage_plugins'.tr),
+                subtitle: Text('plugin_description'.tr),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Get.to(() => PluginSettingsScreen());
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
           // About
           _buildSettingsCard(
             title: 'About',

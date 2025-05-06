@@ -18,9 +18,8 @@ Offline Tasks App empowers users to create, organize, and track tasks without ev
 * Change journal for offline operations
 * Automatic two-way sync when connectivity resumes
 
-🔔 **Reminders & Notifications**
+🔔 **Reminders**
 
-* Local scheduled notifications (via system\_notifications plugin)
 * Snooze and repeat reminders
 * Badge counts on app icon
 

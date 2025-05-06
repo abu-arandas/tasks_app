@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../../controllers/task_controller.dart';
 import '../../models/task.dart';
-import '../widgets/task_list_item.dart';
+import '../widgets/task_card.dart';
 
 class BoardViewScreen extends StatefulWidget {
   const BoardViewScreen({super.key});
@@ -123,7 +123,7 @@ class _BoardViewScreenState extends State<BoardViewScreen> {
               itemBuilder: (context, index) {
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                  child: TaskListItem(task: tasks[index]),
+                  child: TaskCard(task: tasks[index]),
                 );
               },
             ),

@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:uuid/uuid.dart';
 import '../models/reminder.dart';
+
 import '../services/database_service.dart';
 import '../utils/error_handler.dart';
 
@@ -9,7 +10,7 @@ class ReminderController extends GetxController {
   final RxList<Reminder> reminders = <Reminder>[].obs;
   final RxBool isLoading = false.obs;
   final Uuid _uuid = const Uuid();
-  final ErrorHandler _errorHandler = ErrorHandler();
+  final ErrorHandler _errorHandler = Get.find<ErrorHandler>();
 
   @override
   void onInit() {
@@ -59,6 +60,7 @@ class ReminderController extends GetxController {
       await _databaseService.insertReminder(reminder);
       await _databaseService.logChange('reminder', reminder.id, 'create', reminder.toJson().toString());
       reminders.add(reminder);
+
       _errorHandler.showSuccessSnackbar('Success', 'Reminder added successfully');
     } catch (e, stackTrace) {
       _errorHandler.handleDatabaseError(e, customMessage: 'Failed to add reminder');
@@ -91,6 +93,7 @@ class ReminderController extends GetxController {
       if (index != -1) {
         reminders[index] = reminder;
       }
+
       _errorHandler.showSuccessSnackbar('Success', 'Reminder updated successfully');
     } catch (e, stackTrace) {
       _errorHandler.handleDatabaseError(e, customMessage: 'Failed to update reminder');
@@ -146,6 +149,7 @@ class ReminderController extends GetxController {
       await _databaseService.updateReminder(updatedReminder);
       await _databaseService.logChange('reminder', reminder.id, 'update', updatedReminder.toJson().toString());
       reminders[index] = updatedReminder;
+
       _errorHandler.showSuccessSnackbar('Success', 'Reminder snoozed successfully');
     } catch (e, stackTrace) {
       _errorHandler.handleDatabaseError(e, customMessage: 'Failed to snooze reminder');

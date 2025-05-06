@@ -8,14 +8,16 @@ class ConnectivityService extends GetxController {
   final Connectivity _connectivity = Connectivity();
   final DatabaseService _databaseService = DatabaseService();
   final RxBool isOnline = false.obs;
-  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+  late StreamSubscription<List<ConnectivityResult>> _connectivitySubscription;
 
   final ErrorHandler _errorHandler = Get.find<ErrorHandler>();
   @override
   void onInit() {
     super.onInit();
     _initConnectivity();
-    _connectivitySubscription = _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+    _connectivitySubscription = _connectivity.onConnectivityChanged.listen(
+      (result) => _updateConnectionStatus(result.first),
+    );
   }
 
   @override
@@ -26,10 +28,11 @@ class ConnectivityService extends GetxController {
 
   // Initialize connectivity
   Future<void> _initConnectivity() async {
-    ConnectivityResult result;
     try {
-      result = await _connectivity.checkConnectivity();
-      _updateConnectionStatus(result);
+      await _connectivity.checkConnectivity().then((value) {
+        ConnectivityResult result = value.first;
+        _updateConnectionStatus(result);
+      });
     } catch (e) {
       _errorHandler.showErrorSnackbar('Connectivity failed', 'Connectivity check failed: $e');
       isOnline.value = false;

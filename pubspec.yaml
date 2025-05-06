@@ -13,20 +13,36 @@ dependencies:
     sdk: flutter
   get: ^4.6.5
   sqflite: ^2.3.0
-  connectivity_plus: ^5.0.1
-  flutter_slidable: ^3.0.1
+  connectivity_plus: ^6.1.4
+  flutter_slidable: ^4.0.0
   flutter_staggered_grid_view: ^0.7.0
   pull_to_refresh: ^2.0.0
   uuid: ^4.2.1
   shared_preferences: ^2.2.2
   path_provider: ^2.1.1
-  file_picker: ^6.1.1
+  file_picker: ^10.1.2
+  
+  # Firebase for real-time sync
+  firebase_core: ^3.13.0
+  firebase_auth: ^5.5.3
+  cloud_firestore: ^5.6.7
+  
+  # ML for smart suggestions
+  tflite_flutter: ^0.11.0
+  
+  # Multi-language support
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.19.0
+  
+  # Plugin system support
+  plugin_platform_interface: ^2.1.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^3.0.1
+  flutter_lints: ^5.0.0
 
 flutter:
   uses-material-design: true
